@@ -18,22 +18,33 @@ export default function LeadForm() {
   const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async () => {
+    setError(null);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
     setLoading(true);
     try {
-      await fetch("/api/lead", {
+      const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ challenge, count, email, company }),
       });
-    } catch {
-    } finally {
-      setLoading(false);
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Failed to submit");
+      }
       setDone(true);
       const calendly =
         (import.meta as any).env?.VITE_CALENDLY_URL || "https://calendly.com/";
       window.location.href = calendly;
+    } catch (e: any) {
+      setError(e?.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,6 +58,12 @@ export default function LeadForm() {
           <h3 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             Apply for ScriptLab access
           </h3>
+          <div className="mt-2 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className="h-full bg-[hsl(var(--brand))] transition-all"
+              style={{ width: `${(step / 3) * 100}%` }}
+            />
+          </div>
           {!done ? (
             <div className="mt-6 space-y-6">
               {step === 1 && (
@@ -116,9 +133,16 @@ export default function LeadForm() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") onSubmit();
+                        }}
+                        aria-invalid={!!error}
                         className="mt-2 w-full h-12 rounded-md border border-slate-300 px-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand))]"
                         placeholder="you@company.com"
                       />
+                      {error && (
+                        <p className="mt-1 text-sm text-red-600">{error}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700">
