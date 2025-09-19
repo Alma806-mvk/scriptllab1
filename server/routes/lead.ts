@@ -15,7 +15,8 @@ export const handleLead: RequestHandler = async (req, res) => {
   try {
     const lead = {
       ts: new Date().toISOString(),
-      challenge: typeof challenge === "string" ? challenge : String(challenge ?? ""),
+      challenge:
+        typeof challenge === "string" ? challenge : String(challenge ?? ""),
       count: typeof count === "string" ? count : String(count ?? ""),
       email,
       company: typeof company === "string" ? company : String(company ?? ""),
@@ -36,11 +37,18 @@ export const handleLead: RequestHandler = async (req, res) => {
     } catch {
       await fs.writeFile(csvPath, headers, "utf8");
     }
-    const toCsv = (
-      [lead.ts, lead.challenge, lead.count, lead.email, lead.company, lead.ua, lead.ip]
+    const toCsv =
+      [
+        lead.ts,
+        lead.challenge,
+        lead.count,
+        lead.email,
+        lead.company,
+        lead.ua,
+        lead.ip,
+      ]
         .map((v) => `"${String(v).replaceAll('"', '""')}"`) // csv escape
-        .join(",") + "\n"
-    );
+        .join(",") + "\n";
     await fs.appendFile(csvPath, toCsv, "utf8");
 
     // 3) Optional webhook (Zapier/Make/etc.) via env var LEADS_WEBHOOK_URL

@@ -147,13 +147,16 @@ export default function LeadForm() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         onBlur={() => {
-                          if (email && !isValidEmail(email)) setError("Please enter a valid email address");
+                          if (email && !isValidEmail(email))
+                            setError("Please enter a valid email address");
                         }}
                         aria-invalid={!!error}
                         className="mt-2 w-full h-12 rounded-md border border-slate-300 px-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand))]"
                         placeholder="you@company.com"
                       />
-                      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+                      {error && (
+                        <p className="mt-1 text-sm text-red-600">{error}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700">
