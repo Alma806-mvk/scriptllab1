@@ -12,6 +12,10 @@ const challenges = [
 
 const profiles = ["1-5", "6-20", "21-50", "50+"];
 
+function isValidEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
 export default function LeadForm() {
   const [step, setStep] = useState(1);
   const [challenge, setChallenge] = useState(challenges[0]);
@@ -20,8 +24,14 @@ export default function LeadForm() {
   const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async () => {
+    setError(null);
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
     setLoading(true);
     try {
       // 1) Save directly to Firestore (public write)
@@ -136,9 +146,14 @@ export default function LeadForm() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        onBlur={() => {
+                          if (email && !isValidEmail(email)) setError("Please enter a valid email address");
+                        }}
+                        aria-invalid={!!error}
                         className="mt-2 w-full h-12 rounded-md border border-slate-300 px-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand))]"
                         placeholder="you@company.com"
                       />
+                      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700">
@@ -158,7 +173,7 @@ export default function LeadForm() {
                     </Button>
                     <Button
                       onClick={onSubmit}
-                      disabled={loading || !email}
+                      disabled={loading || !isValidEmail(email)}
                       className="bg-[hsl(var(--brand))] hover:bg-[hsl(var(--brand))]/90"
                     >
                       {loading ? "Submitting…" : "Request Access"}
