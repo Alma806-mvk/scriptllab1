@@ -32,7 +32,7 @@ export function Header() {
           </a>
         </nav>
         <div className="hidden md:flex items-center gap-3">
-          <a href="https://0ce05848e7a54d9287ec59f3566cb0fb-849c4e45d7bd4c788c5d8a70a.fly.dev/#signup">
+          <a href="#signup">
             <Button className="bg-[hsl(var(--brand))] hover:bg-[hsl(var(--brand))]/90">
               Join Early Access
             </Button>

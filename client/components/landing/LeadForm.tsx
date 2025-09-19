@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { db } from "@/lib/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 const challenges = [
   "Finding viral hooks that work",
@@ -10,6 +12,10 @@ const challenges = [
 
 const profiles = ["1-5", "6-20", "21-50", "50+"];
 
+function isValidEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
 export default function LeadForm() {
   const [step, setStep] = useState(1);
   const [challenge, setChallenge] = useState(challenges[0]);
@@ -18,23 +24,47 @@ export default function LeadForm() {
   const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async () => {
+    setError(null);
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
     setLoading(true);
     try {
-      await fetch("/api/lead", {
+      // 1) Save directly to Firestore (public write)
+      await addDoc(collection(db, "leads"), {
+        ts: serverTimestamp(),
+        challenge,
+        count,
+        email,
+        company,
+        ua: typeof navigator !== "undefined" ? navigator.userAgent : "",
+      });
+      // 2) Optional: still ping server for logging/CSV backup (non-blocking)
+      fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ challenge, count, email, company }),
-      });
-    } catch {
-    } finally {
-      setLoading(false);
+      }).catch(() => {});
       setDone(true);
-      const calendly =
-        (import.meta as any).env?.VITE_CALENDLY_URL || "https://calendly.com/";
-      window.location.href = calendly;
+    } catch {
+      // fallback to server only if Firestore failed
+      try {
+        await fetch("/api/lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ challenge, count, email, company }),
+        });
+        setDone(true);
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
+    setLoading(false);
   };
 
   return (
@@ -116,9 +146,17 @@ export default function LeadForm() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        onBlur={() => {
+                          if (email && !isValidEmail(email))
+                            setError("Please enter a valid email address");
+                        }}
+                        aria-invalid={!!error}
                         className="mt-2 w-full h-12 rounded-md border border-slate-300 px-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand))]"
                         placeholder="you@company.com"
                       />
+                      {error && (
+                        <p className="mt-1 text-sm text-red-600">{error}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700">
@@ -138,7 +176,7 @@ export default function LeadForm() {
                     </Button>
                     <Button
                       onClick={onSubmit}
-                      disabled={loading || !email}
+                      disabled={loading || !isValidEmail(email)}
                       className="bg-[hsl(var(--brand))] hover:bg-[hsl(var(--brand))]/90"
                     >
                       {loading ? "Submitting…" : "Request Access"}
@@ -149,7 +187,7 @@ export default function LeadForm() {
             </div>
           ) : (
             <div className="mt-4 text-slate-700">
-              Thanks! Redirecting to book your personal demo…
+              Thanks! You’re on the list. We’ll email you shortly.
             </div>
           )}
           <div className="mt-6 grid sm:grid-cols-3 gap-4 text-sm text-slate-600">

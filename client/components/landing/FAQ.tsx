@@ -1,44 +1,65 @@
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
 export default function FAQ() {
   const faqs = [
     {
       q: "Is this legal?",
-      a: "100% compliant. We only access publicly available content.",
+      a: "Yes. We only analyze publicly available content and respect each platform's terms of use.",
     },
     {
       q: "How accurate is the transcription?",
-      a: "99.2% accuracy with enterprise AI models.",
+      a: "We use state‑of‑the‑art models and custom cleanup. In our tests, average word error rate is below 1%.",
     },
     {
       q: "What platforms do you support?",
-      a: "Instagram (Reels, Posts, Stories), TikTok, YouTube (Videos, Shorts).",
-    },
-    {
-      q: "Can I analyze my own content?",
-      a: "Yes! Perfect for content audits and repurposing.",
+      a: "Instagram (Reels, Posts, Stories), TikTok, and YouTube (Videos, Shorts). More are on the roadmap.",
     },
     {
       q: "Do you store the videos?",
-      a: "No. We only store text transcripts for instant search.",
+      a: "No. We process media and store transcripts, metadata, and detected insights for search and analysis.",
+    },
+    {
+      q: "Can I analyze my own content?",
+      a: "Absolutely. Many teams use ScriptLab to audit their back catalog and find repeatable hooks.",
+    },
+    {
+      q: "How is my data secured?",
+      a: "All traffic is encrypted in transit. Transcripts are encrypted at rest and access is role‑based.",
+    },
+    {
+      q: "Can I export data?",
+      a: "CSV and JSON exports are available from any search or collection. API access is available on request.",
+    },
+    {
+      q: "What about rate limits?",
+      a: "We implement fair‑use rate limits per account to protect performance. Enterprise limits can be increased.",
     },
   ];
+
   return (
     <section className="container mx-auto px-4 py-16" id="faq">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 text-center">
           Frequently asked questions
         </h2>
-        <div className="mt-8 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-          {faqs.map((f, i) => (
-            <details key={i} className="group p-5">
-              <summary className="cursor-pointer list-none text-slate-900 font-medium flex items-center justify-between">
-                {f.q}
-                <span className="ml-4 transition-transform group-open:rotate-180">
-                  ▾
-                </span>
-              </summary>
-              <p className="mt-2 text-slate-600">{f.a}</p>
-            </details>
-          ))}
+        <div className="mt-8 rounded-xl border border-slate-200 bg-white">
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((f, i) => (
+              <AccordionItem key={i} value={`item-${i}`}>
+                <AccordionTrigger className="px-5 text-left">
+                  {f.q}
+                </AccordionTrigger>
+                <AccordionContent className="px-5 text-slate-600">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </section>
