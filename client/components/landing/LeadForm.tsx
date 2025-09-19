@@ -40,9 +40,6 @@ export default function LeadForm() {
         body: JSON.stringify({ challenge, count, email, company }),
       }).catch(() => {});
       setDone(true);
-      const calendly =
-        (import.meta as any).env?.VITE_CALENDLY_URL || "https://calendly.com/";
-      window.location.href = calendly;
     } catch {
       // fallback to server only if Firestore failed
       try {
@@ -52,9 +49,6 @@ export default function LeadForm() {
           body: JSON.stringify({ challenge, count, email, company }),
         });
         setDone(true);
-        const calendly =
-          (import.meta as any).env?.VITE_CALENDLY_URL || "https://calendly.com/";
-        window.location.href = calendly;
       } finally {
         setLoading(false);
       }
@@ -175,7 +169,7 @@ export default function LeadForm() {
             </div>
           ) : (
             <div className="mt-4 text-slate-700">
-              Thanks! Redirecting to book your personal demo…
+              Thanks! You’re on the list. We’ll email you shortly.
             </div>
           )}
           <div className="mt-6 grid sm:grid-cols-3 gap-4 text-sm text-slate-600">
