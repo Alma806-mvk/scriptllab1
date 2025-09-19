@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { db } from "@/lib/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 const challenges = [
   "Finding viral hooks that work",
@@ -22,19 +24,43 @@ export default function LeadForm() {
   const onSubmit = async () => {
     setLoading(true);
     try {
-      await fetch("/api/lead", {
+      // 1) Save directly to Firestore (public write)
+      await addDoc(collection(db, "leads"), {
+        ts: serverTimestamp(),
+        challenge,
+        count,
+        email,
+        company,
+        ua: typeof navigator !== "undefined" ? navigator.userAgent : "",
+      });
+      // 2) Optional: still ping server for logging/CSV backup (non-blocking)
+      fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ challenge, count, email, company }),
-      });
-    } catch {
-    } finally {
-      setLoading(false);
+      }).catch(() => {});
       setDone(true);
       const calendly =
         (import.meta as any).env?.VITE_CALENDLY_URL || "https://calendly.com/";
       window.location.href = calendly;
+    } catch {
+      // fallback to server only if Firestore failed
+      try {
+        await fetch("/api/lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ challenge, count, email, company }),
+        });
+        setDone(true);
+        const calendly =
+          (import.meta as any).env?.VITE_CALENDLY_URL || "https://calendly.com/";
+        window.location.href = calendly;
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
+    setLoading(false);
   };
 
   return (
